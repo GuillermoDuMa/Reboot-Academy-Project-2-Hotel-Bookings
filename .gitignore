@@ -9,6 +9,7 @@ __pycache__/
 # Directories:
 .virtual_documents/
 .anaconda_projects/
+.ipynb_checkpoints/
 
 # Distribution / packaging
 .Python
