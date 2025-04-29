@@ -1,5 +1,6 @@
 # Data
 *.csv
+!hotel_bookings_clean.csv
 *.json
 *.jsonl
 *.jsonl.gz
@@ -19,6 +20,7 @@ __pycache__/
 .virtual_documents/
 .anaconda_projects/
 .ipynb_checkpoints/
+anaconda_projects/
 
 # Distribution / packaging
 .Python
