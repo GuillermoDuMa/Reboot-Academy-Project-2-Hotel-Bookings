@@ -1,3 +1,11 @@
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+
 # Data
 *.csv
 !hotel_bookings_clean.csv
