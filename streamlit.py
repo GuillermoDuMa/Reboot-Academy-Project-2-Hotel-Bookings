@@ -4,10 +4,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
+from scipy.optimize import curve_fit
+
 
 # Set page config
 st.set_page_config(
-    page_title="Hotel Bookings Analysis",
+    page_title="Sunrise Hospitality Hotels Analysis",
     page_icon="🏨",
     layout="wide"
 )
@@ -24,14 +26,13 @@ def load_data():
 df = load_data()
 
 # Title
-st.title("🏨 Hotel Bookings Analysis Dashboard")
+st.title("Sunrise Hospitality Hotels Analysis")
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["Cancellation Rates", "Lead Time vs Cancellations", "ADR Analysis"])
+tab1, tab2, tab3 = st.tabs(["Cancellation Rates", "Lead Time Analysis", "ADR Analysis"])
 
 # Tab 1: Cancellation Rates
 with tab1:
-    st.header("Cancellation Analysis")
     
     col1, col2 = st.columns(2)
     
@@ -45,7 +46,7 @@ with tab1:
         fig = px.pie(
             values=[canceled_bookings, not_canceled],
             names=['Canceled', 'Not Canceled'],
-            color_discrete_sequence=['#FF5252', '#4CAF50']
+            color_discrete_sequence=['#FFDE59', '#FF914D']
         )
         fig.update_traces(
             textinfo='percent+label',
@@ -89,14 +90,12 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
 
 # Tab 2: Lead Time vs Cancellations
+
 with tab2:
-    st.header("Lead Time Analysis")
-    
     col1, col2 = st.columns(2)
-    
     with col1:
-        # Graph 1: Cancellation rates by lead time groups
-        st.subheader("Cancellation Rates by Lead Time Groups")
+# Graph 1: Cancellation rates by lead time groups
+        st.markdown("<h3 style='text-align: center;'>Cancellation rates by lead time groups </h3>", unsafe_allow_html=True)
         
         # Create lead time groups
         bins = [0, 7, 30, 60, 90, float('inf')]
@@ -112,7 +111,7 @@ with tab2:
             x='lead_time_group',
             y='cancelation_rate',
             color='lead_time_group',
-            color_discrete_sequence=px.colors.qualitative.Set3
+            color_discrete_sequence=['#FFCC33', '#FFA832', '#FE8330', '#FE5F2F', '#FD3A2D']
         )
         fig.update_layout(
             xaxis_title="Lead Time Group",
@@ -123,12 +122,12 @@ with tab2:
             template="none",
             showlegend=True
         )
-        fig.update_traces(marker_line_color='black', marker_line_width=1)
+        fig.update_traces(marker_line_color='white', marker_line_width=1)
         st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        # Graph 2: Relation between lead time and cancellations (trend line only, rounded x-ticks, y as %)
-        st.subheader("Lead Time vs Cancellation Rate")
+
+   # Graph 2: Relation between lead time and cancellations (trend line only, rounded x-ticks, y as %)
+    with col2:    
+        st.markdown("<h3 style='text-align: center;'>Relation between lead time and cancellations </h3>", unsafe_allow_html=True)
 
         # Create scatter plot with trend line, but hide markers
         fig = px.scatter(
@@ -136,7 +135,7 @@ with tab2:
             x='lead_time',
             y='is_canceled',
             trendline="lowess",
-            color_discrete_sequence=['#2196F3'],
+            color_discrete_sequence=['#FE8330'],
             opacity=0  # Hide the scatter points
         )
         # Remove scatter points, keep only the trend line
@@ -172,17 +171,18 @@ with tab2:
             template="none",
             showlegend=False
         )
-        st.plotly_chart(fig, use_container_width=True)
-
+        st.plotly_chart(fig, use_container_width=True) 
+    
 # Tab 3: ADR Analysis
 with tab3:
-    st.header("Average Daily Rate (ADR) Analysis")
     
     col1, col2 = st.columns(2)
     
     with col1:
         # Graph 1: Average ADR by market segment (sorted)
-        st.subheader("Average ADR by Market Segment")
+       
+        st.markdown("<h3 style='text-align: center;'>Average ADR by Market Segment</h3>", unsafe_allow_html=True)
+
         adr_market = df.groupby('market_segment')['adr'].mean().round(2).reset_index()
         adr_market = adr_market.sort_values('adr', ascending=False)  # Sort descending
         
@@ -191,7 +191,7 @@ with tab3:
             x='market_segment',
             y='adr',
             color='market_segment',
-            color_discrete_sequence=px.colors.qualitative.Set3
+            color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3'], # Paleta de colores
         )
         fig.update_layout(
             xaxis_title="Market Segment",
@@ -202,12 +202,12 @@ with tab3:
             template="none",
             showlegend=False  # Hide legend, as color is not needed
         )
-        fig.update_traces(marker_line_color='black', marker_line_width=1)
+        fig.update_traces(marker_line_color='white', marker_line_width=1)
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
         # Graph 2: Most Profitable Customer Types by ADR (horizontal bar, labels on bars, no axis titles)
-        st.subheader("Most Profitable Customer Types by ADR")
+        st.markdown("<h3 style='text-align: center;'>Most Profitable Customer Types by ADR </h3>", unsafe_allow_html=True)
         
         # Calculate average ADR by customer type
         profitable_customers = df.groupby('customer_type')['adr'].mean().round(2).sort_values(ascending=True)
@@ -220,8 +220,8 @@ with tab3:
             orientation='h',
             marker=dict(
                 color=profitable_customers.values,
-                colorscale='Viridis',
-                line=dict(color='black', width=1)
+                colorscale=['#F34A05', '#cd853f', '#FA6225', '#FDDC6D'],
+                line=dict(color='white', width=1)
             ),
             text=profitable_customers.index,
             textposition='inside',
@@ -232,11 +232,6 @@ with tab3:
         ))
         
         fig.update_layout(
-            title=dict(
-                text="Most Profitable Customer Types by ADR",
-                x=0.5,
-                y=0.95
-            ),
             xaxis=dict(
                 showgrid=True,
                 gridcolor='rgba(0,0,0,0.1)',
@@ -277,7 +272,7 @@ with tab3:
         x=adr_dow['day_of_week'],
         y=adr_dow['count'],
         name='Number of Bookings',
-        marker_color='#B0BEC5',
+        marker_color='#FDDC6D',
         yaxis='y2',
         opacity=0.5
     ))
@@ -287,7 +282,7 @@ with tab3:
         y=adr_dow['adr'],
         name='Average ADR',
         mode='lines+markers',
-        line=dict(color='#2196F3', width=3),
+        line=dict(color='#F34A05', width=3),
         marker=dict(size=10, line=dict(width=2, color='black'))
     ))
     fig.update_layout(
