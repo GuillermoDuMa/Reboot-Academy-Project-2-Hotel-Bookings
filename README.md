@@ -48,7 +48,7 @@ This will open the interactive dashboard in your web browser.
 
 ### 3. Notebooks
 - `Data_Cleaning.ipynb`: Data cleaning and preprocessing steps
-- `EDA-david.ipynb`, `EDA-azahara.ipynb`: Exploratory data analysis and visualizations
+- `EDA-david.ipynb`, `EDA-azahara.ipynb`, `EDA-guillermo.ipynb`: Exploratory data analysis and visualizations
 
 ---
 
