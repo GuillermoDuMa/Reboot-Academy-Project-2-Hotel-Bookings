@@ -15,10 +15,8 @@ st.set_page_config(
 # Load data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('hotel_bookings_clean.csv')
-    # Convert arrival_date to datetime if it's not already
-    if not pd.api.types.is_datetime64_any_dtype(df['arrival_date']):
-        df['arrival_date'] = pd.to_datetime(df['arrival_date'])
+    df = pd.read_csv('hotel_bookings_clean.csv', parse_dates=['arrival_date'])
+    
     # Add day of week column
     df['day_of_week'] = df['arrival_date'].dt.day_name()
     return df
