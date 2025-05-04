@@ -253,7 +253,7 @@ with tab3:
         )
         st.plotly_chart(fig, use_container_width=True)
     
-    # Graph 3: Average ADR by day of week with booking count
+    # Graph 3: Average ADR and Number of Bookings by Day of Week
     st.subheader("Average ADR and Number of Bookings by Day of Week")
     adr_dow = df.groupby('day_of_week').agg(
         adr=('adr', 'mean'),
@@ -301,3 +301,111 @@ with tab3:
         showlegend=True
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    # NEW GRAPH: Average Length of Stay by Country and Customer Type
+    st.subheader("Average Length of Stay by Country and Customer Type")
+    
+    # Calculate total length of stay
+    df['total_stay'] = df['stays_in_weekend_nights'] + df['stays_in_week_nights']
+    
+    # Get top 10 countries by booking volume
+    top_countries = df['country_name'].value_counts().head(10).index.tolist()
+    country_data = df[df['country_name'].isin(top_countries)]
+    
+    # Create a dictionary for country codes (using ISO-3 style abbreviations)
+    country_codes = {
+        'Portugal': 'PRT',
+        'United Kingdom': 'GBR',
+        'France': 'FRA',
+        'Spain': 'ESP',
+        'Germany': 'DEU',
+        'Italy': 'ITA',
+        'Ireland': 'IRL',
+        'Belgium': 'BEL',
+        'Brazil': 'BRA',
+        'Netherlands': 'NLD',
+        'United States of America': 'USA',
+        'Switzerland': 'CHE',
+        'China': 'CHN',
+        'Austria': 'AUT',
+        'Sweden': 'SWE',
+        'Norway': 'NOR',
+        'Poland': 'POL',
+        'Denmark': 'DNK',
+        'Russia': 'RUS',
+        'Australia': 'AUS'
+    }
+    
+    # Create pivot table
+    los_pivot = pd.pivot_table(
+        country_data,
+        values='total_stay',
+        index='country_name',
+        columns='customer_type',
+        aggfunc='mean'
+    ).round(1)
+    
+    # Create a version with country codes for display
+    los_pivot_display = los_pivot.copy()
+    los_pivot_display.index = [country_codes.get(country, country[:3].upper()) for country in los_pivot.index]
+    
+    # Create heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=los_pivot.values,
+        x=los_pivot.columns,
+        y=los_pivot_display.index,  # Use the abbreviated codes for display
+        colorscale=['#F7E0E0', '#F34A05'],
+        text=los_pivot.values.round(1),
+        texttemplate="%{text}",
+        textfont={"size":12},
+        hovertemplate='Country: %{customdata}<br>Customer Type: %{x}<br>Avg. Length of Stay: %{z:.1f} nights<extra></extra>',
+        customdata=los_pivot.index  # Use full country names in hover
+    ))
+    
+    fig.update_layout(
+        title={
+            'text': 'Average Length of Stay (Nights)',
+            'y':0.95,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        xaxis_title="Customer Type",
+        yaxis_title="Country",
+        xaxis={'side': 'bottom'},
+        yaxis={
+            'tickangle': 0,  # Keep labels horizontal
+            'automargin': True,  # Automatically adjust margin to fit labels
+            'tickfont': {'size': 11}  # Slightly smaller font
+        },
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        height=500,
+        margin=dict(l=120, r=40, t=60, b=40),  # Increase left margin for country names
+        template="none"
+    )
+    
+    # Add annotations with better visibility
+    for i in range(len(los_pivot.index)):
+        for j in range(len(los_pivot.columns)):
+            fig.add_annotation(
+                x=j,
+                y=i,
+                text=str(los_pivot.values[i, j]),
+                showarrow=False,
+                font=dict(
+                    color="black" if los_pivot.values[i, j] < los_pivot.values.max()*0.7 else "white",
+                    size=12
+                )
+            )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Add interpretive text
+    st.markdown("""
+    <small>Note: Country names are displayed using ISO 3-letter codes. Hover over the heatmap cells for full country names.</small>
+    """, unsafe_allow_html=True)
+    
+ 
+
+   
