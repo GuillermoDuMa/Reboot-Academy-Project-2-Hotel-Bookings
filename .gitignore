@@ -29,6 +29,7 @@ __pycache__/
 .anaconda_projects/
 .ipynb_checkpoints/
 anaconda_projects/
+.streamlit/
 
 # Distribution / packaging
 .Python

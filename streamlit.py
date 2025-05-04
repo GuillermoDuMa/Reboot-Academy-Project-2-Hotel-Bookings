@@ -28,17 +28,30 @@ df = load_data()
 # Title
 st.title("Sunrise Hospitality Hotels Analysis")
 
+# Defining monthly
+month_order = ['January','February','March','April','May','June','July','August','September','October','November','December']
+df['arrival_date_month'] = pd.Categorical(df['arrival_date_month'], categories=month_order, ordered=True)
+
+monthly =   (
+            df.groupby('arrival_date_month', 
+            observed=False).agg(cancellation_rate=('is_canceled','mean'), 
+            total_reservations=('is_canceled',
+            'size')).reset_index()
+            )
+
+monthly['cancellation_rate_pct'] = monthly['cancellation_rate'] * 100
+
 # Create tabs
 tab1, tab2, tab3 = st.tabs(["Cancellation Rates", "Lead Time Analysis", "ADR Analysis"])
 
 # Tab 1: Cancellation Rates
 with tab1:
     
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        # Graph 1: Cancellation vs Total Bookings
-        st.subheader("Cancellation vs Total Bookings")
+        # Graph 1: Cancelled Bookings %
+        st.markdown("<h3 style='text-align: center;'>Cancelled Bookings vs Non-cancelled Bookings</h3>", unsafe_allow_html=True)
         total_bookings = len(df)
         canceled_bookings = df['is_canceled'].sum()
         not_canceled = total_bookings - canceled_bookings
@@ -64,30 +77,126 @@ with tab1:
         st.metric("Total Bookings", total_bookings)
         st.metric("Cancelation Rate", f"{(canceled_bookings/total_bookings)*100:.1f}%")
     
-    with col2:
-        # Graph 2: Cancellations per Market Segment
-        st.subheader("Cancellations per Market Segment")
-        market_cancel = df.groupby('market_segment')['is_canceled'].agg(['count', 'sum']).reset_index()
-        market_cancel['cancelation_rate'] = (market_cancel['sum'] / market_cancel['count']) * 100
+with col2:
+    # Graph 2: Cancellations per Market Segment
+    st.markdown("<h3 style='text-align: center;'>Cancellations per Market Segment</h3>", unsafe_allow_html=True)
+    market_cancel = df.groupby('market_segment')['is_canceled'] \
+                      .agg(total='size', canceled='sum') \
+                      .reset_index()
+    market_cancel['cancelation_rate'] = (market_cancel['canceled'] / market_cancel['total']) * 100
+
+    fig = px.bar(
+        market_cancel,
+        x='market_segment',
+        y='cancelation_rate',
+        color='market_segment',
+        text=market_cancel['cancelation_rate'].round(1),  # texto con una cifra decimal
+        color_discrete_sequence=px.colors.qualitative.Set3,
+        width=800,
+        height=500
+    )
+    fig.update_traces(
+        texttemplate='%{text:.1f}%',      # formatea el texto como porcentaje
+        textposition='outside',           # coloca el texto por encima de las barras
+        marker_line_color='black',
+        marker_line_width=1
+    )
+    fig.update_layout(
+        xaxis_title="Market Segment",
+        yaxis_title="Cancellation Rate (%)",
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        template="none",
+        margin=dict(l=20, r=20, t=40, b=20),
+        font=dict(family="Arial", size=13, color="#333333"),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.15,
+            xanchor="center",
+            x=0.5,
+            font=dict(size=12)
+        )
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+with col3:
+    st.markdown("<h3 style='text-align: center;'>Monthly Cancellations vs Total Bookings </h3>", unsafe_allow_html=True)
+
+    # Renombramos columnas para la leyenda
+    monthly_plot = monthly.rename(columns={
+        'cancellation_rate_pct': 'Cancelación (%)',
+        'total_reservations':  'Reservas Totales'
+    })
+
+    from plotly.subplots import make_subplots
+    import plotly.graph_objects as go
+
+    # Creamos figura con eje secundario
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    # Línea 1: Cancelación (%), eje izquierdo
+    fig.add_trace(
+        go.Scatter(
+            x=monthly_plot['arrival_date_month'],
+            y=monthly_plot['Cancelación (%)'],
+            mode='lines+markers+text',
+            name='Cancelación (%)',
+            text=[f"{v:.1f}%" for v in monthly_plot['Cancelación (%)']],
+            textposition='top center'
+        ),
+        secondary_y=False
+    )
+
+    # Línea 2: Reservas Totales, eje derecho
+    fig.add_trace(
+        go.Scatter(
+            x=monthly_plot['arrival_date_month'],
+            y=monthly_plot['Reservas Totales'],
+            mode='lines+markers+text',
+            name='Reservas Totales',
+            text=monthly_plot['Reservas Totales'].astype(str),
+            textposition='bottom center'
+        ),
+        secondary_y=True
+    )
+
+    # Layout común
+    fig.update_layout(
+        # title='Evolución Mensual: Cancelación vs Reservas',
+        width=600,
+        height=350,
+        template='none',
+        font=dict(family='Arial', size=13, color='#333333'),
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=-0.2,
+            xanchor='center',
+            x=0.5,
+            font=dict(size=12)
+        )
+    )
+
+    # Ejes
+    fig.update_xaxes(title_text='Mes', tickangle=-45)
+    fig.update_yaxes(
+        title_text='Cancelación (%)',
+        secondary_y=False,
+        range=[0, monthly_plot['Cancelación (%)'].max() * 1.2]
+    )
+    fig.update_yaxes(
+        title_text='Reservas Totales',
+        secondary_y=True
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+# color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3']
         
-        fig = px.bar(
-            market_cancel,
-            x='market_segment',
-            y='cancelation_rate',
-            color='market_segment',
-            color_discrete_sequence=px.colors.qualitative.Set3
-        )
-        fig.update_layout(
-            xaxis_title="Market Segment",
-            yaxis_title="Cancellation Rate (%)",
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            legend=dict(font=dict(color='black', size=12)),
-            template="none",
-            showlegend=True
-        )
-        fig.update_traces(marker_line_color='black', marker_line_width=1)
-        st.plotly_chart(fig, use_container_width=True)
+###########################################################################################################################3
 
 # Tab 2: Lead Time vs Cancellations
 
@@ -171,7 +280,11 @@ with tab2:
             template="none",
             showlegend=False
         )
-        st.plotly_chart(fig, use_container_width=True) 
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col3:
+        st.markdown("<h3 style='text-align: center;'>Relation between lead time and cancellations </h3>", unsafe_allow_html=True)
+        
     
 # Tab 3: ADR Analysis
 with tab3:
@@ -405,7 +518,3 @@ with tab3:
     st.markdown("""
     <small>Note: Country names are displayed using ISO 3-letter codes. Hover over the heatmap cells for full country names.</small>
     """, unsafe_allow_html=True)
-    
- 
-
-   
