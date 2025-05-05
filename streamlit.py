@@ -457,6 +457,14 @@ with tab3:
     los_pivot_display.index = [country_codes.get(country, country[:3].upper()) for country in los_pivot.index]
     
     # Create heatmap
+    hover_text = []
+    for country in los_pivot.index:
+        row = []
+        for customer_type in los_pivot.columns:
+            value = los_pivot.loc[country, customer_type]
+            row.append(f"Country: {country}<br>Customer Type: {customer_type}<br>Avg. Length of Stay: {value:.1f} nights")
+        hover_text.append(row)
+
     fig = go.Figure(data=go.Heatmap(
         z=los_pivot.values,
         x=los_pivot.columns,
@@ -465,8 +473,8 @@ with tab3:
         text=los_pivot.values.round(1),
         texttemplate="%{text}",
         textfont={"size":12},
-        hovertemplate='Country: %{customdata}<br>Customer Type: %{x}<br>Avg. Length of Stay: %{z:.1f} nights<extra></extra>',
-        customdata=los_pivot.index  # Use full country names in hover
+        hovertext=hover_text,
+        hoverinfo="text"
     ))
     
     fig.update_layout(
