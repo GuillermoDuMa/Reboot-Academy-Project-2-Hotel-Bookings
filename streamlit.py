@@ -199,12 +199,36 @@ with col3:
 ###########################################################################################################################3
 
 # Tab 2: Lead Time vs Cancellations
-
 with tab2:
+    # First row with two columns
     col1, col2 = st.columns(2)
+    
     with col1:
-# Graph 1: Cancellation rates by lead time groups
-        st.markdown("<h3 style='text-align: center;'>Cancellation rates by lead time groups </h3>", unsafe_allow_html=True)
+        # New Graph: Lead Time Distribution
+        st.markdown("<h3 style='text-align: center;'>Lead Time Distribution</h3>", unsafe_allow_html=True)
+        
+        fig = px.histogram(
+            df,
+            x='lead_time',
+            nbins=50,
+            marginal='box',
+            color_discrete_sequence=['#F34A05']
+        )
+        
+        fig.update_layout(
+            xaxis_title="Lead Time (days)",
+            yaxis_title="Number of Bookings",
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            template="none",
+            showlegend=False
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        # Moved Graph: Cancellation rates by lead time groups
+        st.markdown("<h3 style='text-align: center;'>Cancellation rates by lead time groups</h3>", unsafe_allow_html=True)
         
         # Create lead time groups
         bins = [0, 7, 30, 60, 90, float('inf')]
@@ -233,54 +257,54 @@ with tab2:
         )
         fig.update_traces(marker_line_color='white', marker_line_width=1)
         st.plotly_chart(fig, use_container_width=True)
-
-   # Graph 2: Relation between lead time and cancellations (trend line only, rounded x-ticks, y as %)
-    with col2:
-
-        # Create scatter plot with trend line, but hide markers
-        fig = px.scatter(
-            df,
-            x='lead_time',
-            y='is_canceled',
-            trendline="lowess",
-            color_discrete_sequence=['#FE8330'],
-            opacity=0  # Hide the scatter points
-        )
-        # Remove scatter points, keep only the trend line
-        fig.data = [trace for trace in fig.data if trace.mode == 'lines']
-
-        # Multiply y values by 100 to get percentages and CLIP to [0, 100]
-        if fig.data:
-            y_vals = fig.data[0].y * 100
-            y_vals = np.clip(y_vals, 0, 100)
-            fig.data[0].y = y_vals
-
-        # Set rounded x-ticks
-        max_lead = int(np.ceil(df['lead_time'].max() / 100.0)) * 100
-        fig.update_layout(
-            xaxis=dict(
-                title="Lead Time (days)",
-                tickmode='array',
-                tickvals=list(range(0, max_lead+1, 100)),
-                showgrid=True,
-                gridcolor='rgba(0,0,0,0.1)'
-            ),
-            yaxis=dict(
-                title="Cancellation Rate (%)",
-                tickmode='array',
-                tickvals=[0, 20, 40, 60, 80, 100],
-                ticktext=['0%', '20%', '40%', '60%', '80%', '100%'],
-                showgrid=True,
-                gridcolor='rgba(0,0,0,0.1)'
-            ),
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            legend=dict(font=dict(color='black', size=12)),
-            template="none",
-            showlegend=False
-        )
-        st.plotly_chart(fig, use_container_width=True)
     
+    # Second row: Full width graph
+    st.markdown("<h3 style='text-align: center;'>Cancellation Rate Trend by Lead Time</h3>", unsafe_allow_html=True)
+    
+    # Create scatter plot with trend line, but hide markers
+    fig = px.scatter(
+        df,
+        x='lead_time',
+        y='is_canceled',
+        trendline="lowess",
+        color_discrete_sequence=['#FE8330'],
+        opacity=0  # Hide the scatter points
+    )
+    # Remove scatter points, keep only the trend line
+    fig.data = [trace for trace in fig.data if trace.mode == 'lines']
+
+    # Multiply y values by 100 to get percentages and CLIP to [0, 100]
+    if fig.data:
+        y_vals = fig.data[0].y * 100
+        y_vals = np.clip(y_vals, 0, 100)
+        fig.data[0].y = y_vals
+
+    # Set rounded x-ticks
+    max_lead = int(np.ceil(df['lead_time'].max() / 100.0)) * 100
+    fig.update_layout(
+        xaxis=dict(
+            title="Lead Time (days)",
+            tickmode='array',
+            tickvals=list(range(0, max_lead+1, 100)),
+            showgrid=True,
+            gridcolor='rgba(0,0,0,0.1)'
+        ),
+        yaxis=dict(
+            title="Cancellation Rate (%)",
+            tickmode='array',
+            tickvals=[0, 20, 40, 60, 80, 100],
+            ticktext=['0%', '20%', '40%', '60%', '80%', '100%'],
+            showgrid=True,
+            gridcolor='rgba(0,0,0,0.1)'
+        ),
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        legend=dict(font=dict(color='black', size=12)),
+        template="none",
+        showlegend=False
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
 # Tab 3: ADR Analysis
 with tab3:
     
