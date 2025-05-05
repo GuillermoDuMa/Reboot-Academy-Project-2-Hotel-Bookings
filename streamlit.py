@@ -59,7 +59,8 @@ with tab1:
         fig = px.pie(
             values=[canceled_bookings, not_canceled],
             names=['Canceled', 'Not Canceled'],
-            color_discrete_sequence=['#FFDE59', '#FF914D']
+            color_discrete_sequence=['#FDDC6D', '#F34A05'],
+            height=500
         )
         fig.update_traces(
             textinfo='percent+label',
@@ -77,122 +78,129 @@ with tab1:
         st.metric("Total Bookings", total_bookings)
         st.metric("Cancelation Rate", f"{(canceled_bookings/total_bookings)*100:.1f}%")
 
-with col2:
-    st.markdown("<h3 style='text-align: center;'>Cancellations per Market Segment</h3>", unsafe_allow_html=True)
-    market_cancel = (
-        df.groupby('market_segment')['is_canceled']
-          .agg(total='size', canceled='sum')
-          .reset_index()
-    )
-    market_cancel['cancelation_rate'] = (market_cancel['canceled'] / market_cancel['total']) * 100
-
-    fig = px.bar(
-        market_cancel,
-        x='market_segment',
-        y='cancelation_rate',
-        color='market_segment',
-        text=market_cancel['cancelation_rate'].round(1),
-        color_discrete_sequence=px.colors.qualitative.Set3,
-        width=700,
-        height=500  # igual altura que tus otros gráficos
-    )
-    fig.update_traces(
-        texttemplate='%{text:.1f}%',
-        textposition='outside',
-        marker_line_color='black',
-        marker_line_width=1
-    )
-    fig.update_layout(
-        xaxis_title="Market Segment",
-        yaxis_title="Cancellation Rate (%)",
-        template="none",
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        margin=dict(l=60, r=20, t=30, b=40),  # márgenes más ajustados
-        font=dict(family="Arial", size=13, color="#333333"),
-        legend=dict(
-            title_text = "",
-            orientation="h",
-            x=0.5, xanchor="center",
-            y=-0.15, yanchor="top",
-            font=dict(size=12)
+    with col2:
+        st.markdown("<h3 style='text-align: center;'>Cancellations per Market Segment</h3>", unsafe_allow_html=True)
+        market_cancel = (
+            df.groupby('market_segment')['is_canceled']
+              .agg(total='size', canceled='sum')
+              .reset_index()
         )
-    )
-    st.plotly_chart(fig, use_container_width=True)
+        market_cancel['cancelation_rate'] = (market_cancel['canceled'] / market_cancel['total']) * 100
 
+        # Sort by cancellation rate for consistent color assignment
+        market_cancel = market_cancel.sort_values('cancelation_rate', ascending=False)
 
-with col3:
-    st.markdown("<h3 style='text-align: center;'>Monthly Cancellations vs Total Bookings </h3>", unsafe_allow_html=True)
+        fig = px.bar(
+            market_cancel,
+            x='market_segment',
+            y='cancelation_rate',
+            color='market_segment',
+            text=market_cancel['cancelation_rate'].round(1),
+            color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3'],
+            width=700,
+            height=500
+        )
+        fig.update_traces(
+            texttemplate='%{text:.1f}%',
+            textposition='outside',
+            marker_line_color='black',
+            marker_line_width=1
+        )
+        fig.update_layout(
+            xaxis_title="Market Segment",
+            yaxis_title="Cancellation Rate (%)",
+            template="none",
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            margin=dict(l=60, r=20, t=30, b=40),
+            font=dict(family="Arial", size=13, color="#333333"),
+            legend=dict(
+                title_text = "",
+                orientation="h",
+                x=0.5, xanchor="center",
+                y=-0.15, yanchor="top",
+                font=dict(size=12)
+            )
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Renombramos columnas para la leyenda
-    monthly_plot = monthly.rename(columns={
-        'cancellation_rate_pct': 'Cancellation rate (%)',
-        'total_reservations':  'Total bookings'
-    })
+    with col3:
+        st.markdown("<h3 style='text-align: center;'>Monthly Cancellations vs Total Bookings</h3>", unsafe_allow_html=True)
 
-    from plotly.subplots import make_subplots
-    import plotly.graph_objects as go
+        # Rename columns for the legend
+        monthly_plot = monthly.rename(columns={
+            'cancellation_rate_pct': 'Cancellation rate (%)',
+            'total_reservations':  'Total bookings'
+        })
 
-    # Creamos figura con eje secundario
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+        from plotly.subplots import make_subplots
+        import plotly.graph_objects as go
 
-    # Línea 1: Cancelación (%), eje izquierdo
-    fig.add_trace(
-        go.Scatter(
-            x=monthly_plot['arrival_date_month'],
-            y=monthly_plot['Cancellation rate (%)'],
-            mode='lines+markers+text',
-            name='Cancellation rate (%)',
-            text=[f"{v:.1f}%" for v in monthly_plot['Cancellation rate (%)']],
-            textposition='top center'
-        ),
-        secondary_y=False
-    )
+        # Create figure with secondary axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-    # Línea 2: Reservas Totales, eje derecho
-    fig.add_trace(
-        go.Scatter(
-            x=monthly_plot['arrival_date_month'],
-            y=monthly_plot['Total bookings'],
-            mode='lines+markers+text',
-            name='Total bookings',
-            text=monthly_plot['Total bookings'].astype(str),
-            textposition='bottom center'
-        ),
-        secondary_y=True
-    )
+        # Line 1: Cancellation (%), left axis
+        fig.add_trace(
+            go.Scatter(
+                x=monthly_plot['arrival_date_month'],
+                y=monthly_plot['Cancellation rate (%)'],
+                mode='lines+markers+text',
+                name='Cancellation rate (%)',
+                text=[f"{v:.1f}%" for v in monthly_plot['Cancellation rate (%)']],
+                textposition='top center',
+                line=dict(color='#F34A05', width=3),
+                marker=dict(size=10, line=dict(width=2, color='black'))
+            ),
+            secondary_y=False
+        )
 
-    # Layout común
-    fig.update_layout(
-        # title='Evolución Mensual: Cancelación vs Reservas',
-        width=700,
-        height=500,
-        template='none',
-        font=dict(family='Arial', size=13, color='#333333'),
-        margin=dict(l=80, r=20, t=50, b=100),
-        legend=dict(
-                    orientation='h',
-                    x=0.5,
-                    xanchor='center',
-                    y=-0.3,
-                    yanchor='top',
-                    font=dict(size=12)
-                    )
-    )
+        # Line 2: Total Bookings, right axis
+        fig.add_trace(
+            go.Scatter(
+                x=monthly_plot['arrival_date_month'],
+                y=monthly_plot['Total bookings'],
+                mode='lines+markers+text',
+                name='Total bookings',
+                text=monthly_plot['Total bookings'].astype(str),
+                textposition='bottom center',
+                line=dict(color='#FDDC6D', width=3),
+                marker=dict(size=10, line=dict(width=2, color='black'))
+            ),
+            secondary_y=True
+        )
 
-    # Ejes
-    fig.update_xaxes(title_text='Month', tickangle=-45)
-    fig.update_yaxes(
-        title_text='Cancellation rate (%)',
-        secondary_y=False,
-        range=[0, monthly_plot['Cancellation rate (%)'].max() * 1.2]
-    )
-    fig.update_yaxes(
-        title_text='Total bookings',
-        secondary_y=True
-    )
+        # Common layout
+        fig.update_layout(
+            width=700,
+            height=500,
+            template='none',
+            font=dict(family='Arial', size=13, color='#333333'),
+            margin=dict(l=80, r=20, t=50, b=100),
+            legend=dict(
+                orientation='h',
+                x=0.5,
+                xanchor='center',
+                y=-0.3,
+                yanchor='top',
+                font=dict(size=12)
+            ),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
+        )
 
-    st.plotly_chart(fig, use_container_width=True)
+        # Axes
+        fig.update_xaxes(title_text='Month', tickangle=-45)
+        fig.update_yaxes(
+            title_text='Cancellation rate (%)',
+            secondary_y=False,
+            range=[0, monthly_plot['Cancellation rate (%)'].max() * 1.2]
+        )
+        fig.update_yaxes(
+            title_text='Total bookings',
+            secondary_y=True
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
 # color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3']
         
@@ -324,6 +332,7 @@ with tab3:
             y='adr',
             color='market_segment',
             color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3'], # Paleta de colores
+            height=500  # Match the height of the adjacent graph
         )
         fig.update_layout(
             xaxis_title="Market Segment",
@@ -379,7 +388,7 @@ with tab3:
             ),
             plot_bgcolor='white',
             paper_bgcolor='white',
-            height=400,
+            height=500,  # Match the height of the adjacent graph
             margin=dict(l=20, r=20, t=40, b=20),
             template="none"
         )
