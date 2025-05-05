@@ -111,6 +111,7 @@ with col2:
         margin=dict(l=60, r=20, t=30, b=40),  # márgenes más ajustados
         font=dict(family="Arial", size=13, color="#333333"),
         legend=dict(
+            title_text = "",
             orientation="h",
             x=0.5, xanchor="center",
             y=-0.15, yanchor="top",
@@ -125,8 +126,8 @@ with col3:
 
     # Renombramos columnas para la leyenda
     monthly_plot = monthly.rename(columns={
-        'cancellation_rate_pct': 'Cancelación (%)',
-        'total_reservations':  'Reservas Totales'
+        'cancellation_rate_pct': 'Cancellation rate (%)',
+        'total_reservations':  'Total bookings'
     })
 
     from plotly.subplots import make_subplots
@@ -139,10 +140,10 @@ with col3:
     fig.add_trace(
         go.Scatter(
             x=monthly_plot['arrival_date_month'],
-            y=monthly_plot['Cancelación (%)'],
+            y=monthly_plot['Cancellation rate (%)'],
             mode='lines+markers+text',
-            name='Cancelación (%)',
-            text=[f"{v:.1f}%" for v in monthly_plot['Cancelación (%)']],
+            name='Cancellation rate (%)',
+            text=[f"{v:.1f}%" for v in monthly_plot['Cancellation rate (%)']],
             textposition='top center'
         ),
         secondary_y=False
@@ -152,10 +153,10 @@ with col3:
     fig.add_trace(
         go.Scatter(
             x=monthly_plot['arrival_date_month'],
-            y=monthly_plot['Reservas Totales'],
+            y=monthly_plot['Total bookings'],
             mode='lines+markers+text',
-            name='Reservas Totales',
-            text=monthly_plot['Reservas Totales'].astype(str),
+            name='Total bookings',
+            text=monthly_plot['Total bookings'].astype(str),
             textposition='bottom center'
         ),
         secondary_y=True
@@ -168,26 +169,26 @@ with col3:
         height=500,
         template='none',
         font=dict(family='Arial', size=13, color='#333333'),
-        margin=dict(l=80, r=20, t=50, b=20), # <- margen izquierdo aumentad
+        margin=dict(l=80, r=20, t=50, b=100),
         legend=dict(
-            orientation='h',
-            yanchor='bottom',
-            y=-0.2,
-            xanchor='center',
-            x=0.5,
-            font=dict(size=12)
-        )
+                    orientation='h',
+                    x=0.5,
+                    xanchor='center',
+                    y=-0.3,
+                    yanchor='top',
+                    font=dict(size=12)
+                    )
     )
 
     # Ejes
-    fig.update_xaxes(title_text='Mes', tickangle=-45)
+    fig.update_xaxes(title_text='Month', tickangle=-45)
     fig.update_yaxes(
-        title_text='Cancelación (%)',
+        title_text='Cancellation rate (%)',
         secondary_y=False,
-        range=[0, monthly_plot['Cancelación (%)'].max() * 1.2]
+        range=[0, monthly_plot['Cancellation rate (%)'].max() * 1.2]
     )
     fig.update_yaxes(
-        title_text='Reservas Totales',
+        title_text='Total bookings',
         secondary_y=True
     )
 
