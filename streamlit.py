@@ -76,13 +76,14 @@ with tab1:
         # Display metrics
         st.metric("Total Bookings", total_bookings)
         st.metric("Cancelation Rate", f"{(canceled_bookings/total_bookings)*100:.1f}%")
-    
+
 with col2:
-    # Graph 2: Cancellations per Market Segment
     st.markdown("<h3 style='text-align: center;'>Cancellations per Market Segment</h3>", unsafe_allow_html=True)
-    market_cancel = df.groupby('market_segment')['is_canceled'] \
-                      .agg(total='size', canceled='sum') \
-                      .reset_index()
+    market_cancel = (
+        df.groupby('market_segment')['is_canceled']
+          .agg(total='size', canceled='sum')
+          .reset_index()
+    )
     market_cancel['cancelation_rate'] = (market_cancel['canceled'] / market_cancel['total']) * 100
 
     fig = px.bar(
@@ -90,31 +91,29 @@ with col2:
         x='market_segment',
         y='cancelation_rate',
         color='market_segment',
-        text=market_cancel['cancelation_rate'].round(1),  # texto con una cifra decimal
+        text=market_cancel['cancelation_rate'].round(1),
         color_discrete_sequence=px.colors.qualitative.Set3,
-        width=800,
-        height=500
+        width=700,
+        height=500  # igual altura que tus otros gráficos
     )
     fig.update_traces(
-        texttemplate='%{text:.1f}%',      # formatea el texto como porcentaje
-        textposition='outside',           # coloca el texto por encima de las barras
+        texttemplate='%{text:.1f}%',
+        textposition='outside',
         marker_line_color='black',
         marker_line_width=1
     )
     fig.update_layout(
         xaxis_title="Market Segment",
         yaxis_title="Cancellation Rate (%)",
+        template="none",
         plot_bgcolor='white',
         paper_bgcolor='white',
-        template="none",
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=60, r=20, t=30, b=40),  # márgenes más ajustados
         font=dict(family="Arial", size=13, color="#333333"),
         legend=dict(
             orientation="h",
-            yanchor="bottom",
-            y=-0.15,
-            xanchor="center",
-            x=0.5,
+            x=0.5, xanchor="center",
+            y=-0.15, yanchor="top",
             font=dict(size=12)
         )
     )
@@ -165,11 +164,11 @@ with col3:
     # Layout común
     fig.update_layout(
         # title='Evolución Mensual: Cancelación vs Reservas',
-        width=600,
-        height=350,
+        width=700,
+        height=500,
         template='none',
         font=dict(family='Arial', size=13, color='#333333'),
-        margin=dict(l=20, r=20, t=50, b=20),
+        margin=dict(l=80, r=20, t=50, b=20), # <- margen izquierdo aumentad
         legend=dict(
             orientation='h',
             yanchor='bottom',
@@ -235,8 +234,7 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True)
 
    # Graph 2: Relation between lead time and cancellations (trend line only, rounded x-ticks, y as %)
-    with col2:    
-        st.markdown("<h3 style='text-align: center;'>Relation between lead time and cancellations </h3>", unsafe_allow_html=True)
+    with col2:
 
         # Create scatter plot with trend line, but hide markers
         fig = px.scatter(
@@ -281,10 +279,6 @@ with tab2:
             showlegend=False
         )
         st.plotly_chart(fig, use_container_width=True)
-    
-    with col3:
-        st.markdown("<h3 style='text-align: center;'>Relation between lead time and cancellations </h3>", unsafe_allow_html=True)
-        
     
 # Tab 3: ADR Analysis
 with tab3:
