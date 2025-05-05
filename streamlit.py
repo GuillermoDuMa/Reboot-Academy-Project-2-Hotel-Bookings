@@ -219,7 +219,6 @@ with tab2:
             df,
             x='lead_time',
             nbins=50,
-            marginal='box',
             color_discrete_sequence=['#F34A05']
         )
         
