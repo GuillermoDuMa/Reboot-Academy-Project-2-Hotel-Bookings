@@ -64,9 +64,10 @@ with tab1:
         )
         fig.update_traces(
             textinfo='percent+label',
-            marker=dict(line=dict(color='#000000', width=2)),
+            marker=dict(line=dict(color='#FFFFFF', width=2)),
             name="Booking Status"
         )
+
         fig.update_layout(
             legend=dict(font=dict(color='black', size=12)),
             template="none",
@@ -232,7 +233,7 @@ with tab2:
         )
         
         st.plotly_chart(fig, use_container_width=True)
-    
+
     with col2:
         # Moved Graph: Cancellation rates by lead time groups
         st.markdown("<h3 style='text-align: center;'>Cancellation rates by lead time groups</h3>", unsafe_allow_html=True)
@@ -366,7 +367,7 @@ with tab3:
             text=profitable_customers.index,
             textposition='inside',
             insidetextanchor='middle',
-            textfont=dict(color='white', size=12),
+            textfont=dict(color='black', size=12),
             hovertemplate='%{y}: %{x}<extra></extra>',
             showlegend=False
         ))
