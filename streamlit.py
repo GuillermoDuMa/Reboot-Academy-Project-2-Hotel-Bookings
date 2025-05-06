@@ -104,7 +104,7 @@ with tab1:
         fig.update_traces(
             texttemplate='%{text:.1f}%',
             textposition='outside',
-            marker_line_color='black',
+            marker_line_color='white',
             marker_line_width=1
         )
         fig.update_layout(
