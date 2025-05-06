@@ -5,7 +5,8 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 from scipy.optimize import curve_fit
-
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
 # Set page config
 st.set_page_config(
@@ -80,52 +81,6 @@ with tab1:
         st.metric("Cancelation Rate", f"{(canceled_bookings/total_bookings)*100:.1f}%")
 
     with col2:
-        st.markdown("<h3 style='text-align: center;'>Cancellations per Market Segment</h3>", unsafe_allow_html=True)
-        market_cancel = (
-            df.groupby('market_segment')['is_canceled']
-              .agg(total='size', canceled='sum')
-              .reset_index()
-        )
-        market_cancel['cancelation_rate'] = (market_cancel['canceled'] / market_cancel['total']) * 100
-
-        # Sort by cancellation rate for consistent color assignment
-        market_cancel = market_cancel.sort_values('cancelation_rate', ascending=False)
-
-        fig = px.bar(
-            market_cancel,
-            x='market_segment',
-            y='cancelation_rate',
-            color='market_segment',
-            text=market_cancel['cancelation_rate'].round(1),
-            color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3'],
-            width=700,
-            height=500
-        )
-        fig.update_traces(
-            texttemplate='%{text:.1f}%',
-            textposition='outside',
-            marker_line_color='white',
-            marker_line_width=1
-        )
-        fig.update_layout(
-            xaxis_title="Market Segment",
-            yaxis_title="Cancellation Rate (%)",
-            template="none",
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            margin=dict(l=60, r=20, t=30, b=40),
-            font=dict(family="Arial", size=13, color="#333333"),
-            legend=dict(
-                title_text = "",
-                orientation="h",
-                x=0.5, xanchor="center",
-                y=-0.15, yanchor="top",
-                font=dict(size=12)
-            )
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with col3:
         st.markdown("<h3 style='text-align: center;'>Monthly Cancellations vs Total Bookings</h3>", unsafe_allow_html=True)
 
         # Rename columns for the legend
@@ -133,10 +88,6 @@ with tab1:
             'cancellation_rate_pct': 'Cancellation rate (%)',
             'total_reservations':  'Total bookings'
         })
-
-        from plotly.subplots import make_subplots
-        import plotly.graph_objects as go
-
         # Create figure with secondary axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -201,6 +152,52 @@ with tab1:
             secondary_y=True
         )
 
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col3:
+        st.markdown("<h3 style='text-align: center;'>Cancellations per Market Segment</h3>", unsafe_allow_html=True)
+        market_cancel = (
+            df.groupby('market_segment')['is_canceled']
+              .agg(total='size', canceled='sum')
+              .reset_index()
+        )
+        market_cancel['cancelation_rate'] = (market_cancel['canceled'] / market_cancel['total']) * 100
+
+        # Sort by cancellation rate for consistent color assignment
+        market_cancel = market_cancel.sort_values('cancelation_rate', ascending=False)
+
+        fig = px.bar(
+            market_cancel,
+            x='market_segment',
+            y='cancelation_rate',
+            color='market_segment',
+            text=market_cancel['cancelation_rate'].round(1),
+            color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3'],
+            width=700,
+            height=500
+        )
+        fig.update_traces(
+            texttemplate='%{text:.1f}%',
+            textposition='outside',
+            marker_line_color='white',
+            marker_line_width=1
+        )
+        fig.update_layout(
+            xaxis_title="Market Segment",
+            yaxis_title="Cancellation Rate (%)",
+            template="none",
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            margin=dict(l=60, r=20, t=30, b=40),
+            font=dict(family="Arial", size=13, color="#333333"),
+            legend=dict(
+                title_text = "",
+                orientation="h",
+                x=0.5, xanchor="center",
+                y=-0.15, yanchor="top",
+                font=dict(size=12)
+            )
+        )
         st.plotly_chart(fig, use_container_width=True)
 
 # color_discrete_sequence=['#cf4003', '#F34A05', '#FA6225', '#FDA400', '#FDB32F', '#FDDC6D', '#FDF4A3']
